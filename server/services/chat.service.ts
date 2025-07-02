@@ -5,6 +5,33 @@ import { Chat, ChatResponse, CreateChatPayload } from '../types/chat';
 import { Message, MessageResponse } from '../types/message';
 
 /**
+ * Creates and saves a new message document in the database.
+ * @param messageData - The message data to be created.
+ * @returns {Promise<MessageResponse>} - Resolves with the created message or an error message.
+ */
+export const createMessage = async (messageData: Message): Promise<MessageResponse> => {
+  // TODO: Task 3 - Implement the createMessage function. Refer to other service files for guidance.
+  try {
+    const result = await MessageModel.create(messageData);
+
+    if (!result) {
+      throw new Error('Failed to create message');
+    }
+
+    const messageObj = result.toObject();
+    return {
+      _id: messageObj._id,
+      msg: messageObj.msg,
+      msgFrom: messageObj.msgFrom,
+      msgDateTime: messageObj.msgDateTime,
+      type: messageObj.type,
+    };
+  } catch (error) {
+    return { error: `Error occurred when creating message: ${error}` };
+  }
+};
+
+/**
  * Creates and saves a new chat document in the database, saving messages dynamically.
  *
  * @param chat - The chat object to be saved, including full message objects.
@@ -49,33 +76,6 @@ export const saveChat = async (chatPayload: CreateChatPayload): Promise<ChatResp
   }
 };
 // TODO: Task 3 - Implement the saveChat function. Refer to other service files for guidance.
-
-/**
- * Creates and saves a new message document in the database.
- * @param messageData - The message data to be created.
- * @returns {Promise<MessageResponse>} - Resolves with the created message or an error message.
- */
-export const createMessage = async (messageData: Message): Promise<MessageResponse> => {
-  // TODO: Task 3 - Implement the createMessage function. Refer to other service files for guidance.
-  try {
-    const result = await MessageModel.create(messageData);
-
-    if (!result) {
-      throw new Error('Failed to create message');
-    }
-
-    const messageObj = result.toObject();
-    return {
-      _id: messageObj._id,
-      msg: messageObj.msg,
-      msgFrom: messageObj.msgFrom,
-      msgDateTime: messageObj.msgDateTime,
-      type: messageObj.type,
-    };
-  } catch (error) {
-    return { error: `Error occurred when creating message: ${error}` };
-  }
-};
 
 /**
  * Adds a message ID to an existing chat.

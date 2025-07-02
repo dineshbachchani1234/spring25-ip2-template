@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import ChatModel from '../../models/chat.model';
 import MessageModel from '../../models/messages.model';
 import UserModel from '../../models/users.model';
+import * as chatService from '../../services/chat.service';
 import {
   saveChat,
   createMessage,
@@ -36,7 +37,9 @@ describe('Chat service', () => {
     mockingoose.resetAll();
 
     // Wait for cleanup
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise<void>(resolve => {
+      setTimeout(resolve, 100);
+    });
   });
 
   // ----------------------------------------------------------------------------
@@ -137,7 +140,7 @@ describe('Chat service', () => {
       };
 
       jest
-        .spyOn(require('../../services/chat.service'), 'createMessage')
+        .spyOn(chatService, 'createMessage')
         .mockResolvedValueOnce({ error: 'Failed to create message' });
 
       const result = await saveChat(mockPayload);
@@ -169,13 +172,15 @@ describe('Chat service', () => {
         messages: [],
       };
 
-      jest.spyOn(ChatModel, 'create').mockResolvedValueOnce(null as any);
+      jest
+        .spyOn(ChatModel, 'create')
+        .mockRejectedValueOnce(new Error('Chat Creation returns error'));
 
       const result = await saveChat(mockPayload);
 
       expect('error' in result).toBe(true);
       if ('error' in result) {
-        expect(result.error).toContain('Failed to create chat');
+        expect(result.error).toContain('Chat Creation returns error');
       }
     });
     afterEach(() => {
@@ -220,7 +225,7 @@ describe('Chat service', () => {
     });
 
     it('should return error if message creation fails', async () => {
-      const mockMessage: Message = {
+      const mockMessageFail: Message = {
         msg: 'Hey!',
         msgFrom: 'userX',
         msgDateTime: new Date('2025-01-01T10:00:00.000Z'),
@@ -228,7 +233,7 @@ describe('Chat service', () => {
       };
       jest.spyOn(MessageModel, 'create').mockRejectedValueOnce(new Error('Database error'));
 
-      const result = await createMessage(mockMessage);
+      const result = await createMessage(mockMessageFail);
 
       expect('error' in result).toBe(true);
       if ('error' in result) {
@@ -237,7 +242,7 @@ describe('Chat service', () => {
     });
 
     it('should return error if message creation returns null', async () => {
-      const mockMessage: Message = {
+      const mockMessageNull: Message = {
         msg: 'Hey!',
         msgFrom: 'userX',
         msgDateTime: new Date('2025-01-01T10:00:00.000Z'),
@@ -246,7 +251,7 @@ describe('Chat service', () => {
 
       jest.spyOn(MessageModel, 'create').mockRejectedValueOnce(new Error('Creation failed'));
 
-      const result = await createMessage(mockMessage);
+      const result = await createMessage(mockMessageNull);
 
       expect('error' in result).toBe(true);
       if ('error' in result) {

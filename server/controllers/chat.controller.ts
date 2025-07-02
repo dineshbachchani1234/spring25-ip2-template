@@ -136,7 +136,7 @@ const chatController = (socket: FakeSOSocket) => {
       const { msg, msgFrom, msgDateTime } = req.body;
 
       const messageData = {
-        msg: msg,
+        msg,
         msgFrom,
         msgDateTime: msgDateTime ? new Date(msgDateTime) : new Date(),
         type: 'direct' as const,
@@ -226,14 +226,15 @@ const chatController = (socket: FakeSOSocket) => {
 
       const chats = await getChatsByParticipants([username]);
 
-      const populatedChats = [];
-      for (const chat of chats) {
-        const populatedChat = await populateDocument(chat._id?.toString(), 'chat');
-        if (!populatedChat) {
-          throw new Error(`Failed to populate chat document with ID: ${chat._id}`);
-        }
-        populatedChats.push(populatedChat);
-      }
+      const populatedChats = await Promise.all(
+        chats.map(async chat => {
+          const populatedChat = await populateDocument(chat._id?.toString(), 'chat');
+          if (!populatedChat) {
+            throw new Error(`Failed to populate chat document with ID: ${chat._id}`);
+          }
+          return populatedChat;
+        }),
+      );
 
       res.status(200).json(populatedChats);
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Chat, ChatUpdatePayload, Message, User } from '../types';
+import { Chat, ChatUpdatePayload, User } from '../types';
 import useUserContext from './useUserContext';
 import { createChat, getChatById, getChatsByUser, sendMessage } from '../services/chatService';
 
@@ -34,7 +34,7 @@ const useDirectMessage = () => {
       await sendMessage(messageData, selectedChat._id);
       setNewMessage('');
     } catch (error) {
-      console.error('Failed to send message:', error);
+      // Handle error silently or use proper error handling
     }
     // TODO: Task 3 - Implement the send message handler function.
     // Whitespace-only messages should not be sent, and the current chat to send this message to
@@ -52,7 +52,7 @@ const useDirectMessage = () => {
       setSelectedChat(chatDetails);
       handleJoinChat(chatID);
     } catch (error) {
-      console.error('Failed to fetch chat details:', error);
+      // Handle error silently or use proper error handling
     }
     // TODO: Task 3 - Implement the chat selection handler function.
     // If the chat ID is defined, fetch the chat details using the appropriate service function,
@@ -79,7 +79,7 @@ const useDirectMessage = () => {
       setShowCreatePanel(false);
       setChatToCreate('');
     } catch (error) {
-      console.error('Failed to create chat:', error);
+      // Handle error silently or use proper error handling
     }
     // TODO: Task 3 - Implement the create chat handler function.
     // If the username to create a chat is defined, use the appropriate service function to create a new chat
@@ -93,7 +93,7 @@ const useDirectMessage = () => {
         const userChats = await getChatsByUser(user.username);
         setChats(userChats);
       } catch (error) {
-        console.error('Failed to fetch chats:', error);
+        // Handle error silently or use proper error handling
       }
       // TODO: Task 3 - Fetch all the chats with the current user and update the state variable.
     };
@@ -145,7 +145,7 @@ const useDirectMessage = () => {
       // TODO: Task 3 - Emit a socket event to leave the particular chat room
       // they are currently in when the component unmounts.
     };
-  }, [user.username, socket, selectedChat?._id]);
+  }, [user.username, socket, selectedChat]);
 
   return {
     selectedChat,

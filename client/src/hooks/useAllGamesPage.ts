@@ -33,7 +33,7 @@ const useAllGamesPage = () => {
     try {
       await createGame(gameType);
     } catch (err) {
-      console.error('Failed to create game');
+      // Handle error silently or use proper error handling
     }
     // TODO: Task 2 - Create a new game with the provided type
     fetchGames();

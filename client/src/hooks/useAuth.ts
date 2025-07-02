@@ -76,7 +76,6 @@ const useAuth = (authType: 'login' | 'signup') => {
       }
     }
     setErr('');
-    console.log('Validation passed');
     return true;
     // TODO - Task 1: Validate inputs for login and signup forms
     // Display any errors to the user
@@ -91,7 +90,6 @@ const useAuth = (authType: 'login' | 'signup') => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateInputs()) {
-      console.log('Validation Failed');
       return;
     }
 
@@ -104,7 +102,6 @@ const useAuth = (authType: 'login' | 'signup') => {
         user = await loginUser({ username, password });
       }
 
-      console.log('navigate to home');
       setUser(user);
       navigate('/home');
     } catch (error: unknown) {

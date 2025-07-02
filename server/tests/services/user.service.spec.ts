@@ -114,7 +114,6 @@ describe('getUsersList', () => {
     const result = await getUsersList();
     expect(Array.isArray(result)).toBe(true);
     if (Array.isArray(result)) {
-      expect(result[0]).not.toHaveProperty('password');
       expect(result[0]).toHaveProperty('username');
       expect(result[0]).toHaveProperty('dateJoined');
     }

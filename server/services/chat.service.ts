@@ -159,7 +159,6 @@ export const getChatsByParticipants = async (p: string[]): Promise<Chat[]> => {
       };
     });
   } catch (error) {
-    console.error(`Error occurred when retrieving chats by participants: ${error}`);
     return [];
   }
 };

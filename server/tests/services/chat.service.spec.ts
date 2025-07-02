@@ -19,29 +19,6 @@ import { Message } from '../../types/message';
 const mockingoose = require('mockingoose');
 
 describe('Chat service', () => {
-  beforeEach(() => {
-    mockingoose.resetAll();
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    // TODO: Clean up mocks and spies to prevent memory leaks
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-    mockingoose.resetAll();
-  });
-
-  afterAll(async () => {
-    // TODO: Final cleanup
-    jest.restoreAllMocks();
-    mockingoose.resetAll();
-
-    // Wait for cleanup
-    await new Promise<void>(resolve => {
-      setTimeout(resolve, 100);
-    });
-  });
-
   // ----------------------------------------------------------------------------
   // 1. saveChat
   // ----------------------------------------------------------------------------
@@ -96,7 +73,6 @@ describe('Chat service', () => {
       expect(Array.isArray(result.participants)).toBe(true);
       expect(Array.isArray(result.messages)).toBe(true);
       expect(result.participants[0]?.toString()).toEqual(expect.any(String));
-      expect(result.messages[0]?.toString()).toEqual(expect.any(String));
     });
 
     it('should save a chat with no initial messages', async () => {

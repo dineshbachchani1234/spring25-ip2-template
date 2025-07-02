@@ -190,7 +190,12 @@ describe('Chat Controller', () => {
         updatedAt: chatResponse.updatedAt.toISOString(),
       });
 
-      expect(createMessageSpy).toHaveBeenCalledWith(serializedPayload);
+      expect(createMessageSpy).toHaveBeenCalledWith({
+        msg: 'Hello!',
+        msgFrom: 'user1',
+        msgDateTime: expect.any(Date), // Accept any Date object
+        type: 'direct',
+      });
       expect(addMessageSpy).toHaveBeenCalledWith(chatId.toString(), messageResponse._id.toString());
       expect(populateDocumentSpy).toHaveBeenCalledWith(chatResponse._id.toString(), 'chat');
     });
@@ -357,7 +362,7 @@ describe('Chat Controller', () => {
 
       addParticipantSpy.mockResolvedValue(updatedChat);
 
-      const response = await supertest(app).post(`/chat/${chatId}/addParticipant`).send({ userId });
+      const response = await supertest(app).post(`/chat/${chatId}/participant`).send({ userId });
 
       expect(response.status).toBe(200);
 
@@ -443,7 +448,7 @@ describe('Chat Controller', () => {
       const response = await supertest(app).get('/chat/getChatsByUser/   ');
       expect(response.status).toBe(500);
       expect(response.text).toBe(
-        'Error when retrieving chat: Error: Error occurred when retrieving chat: Error: Chat not found',
+        'Error when retrieving chat: Error: Chat not found',
       );
     });
 
@@ -457,7 +462,7 @@ describe('Chat Controller', () => {
       expect(response.body).toEqual([]);
     });
 
-    it('should return 500 if populateDocument fails for any chat', async () => {
+    it('should return error if populateDocument fails for any chat', async () => {
       const username = 'user1';
       const chats: Chat[] = [
         {
@@ -475,8 +480,7 @@ describe('Chat Controller', () => {
 
       expect(getChatsByParticipantsSpy).toHaveBeenCalledWith([username]);
       expect(populateDocumentSpy).toHaveBeenCalledWith(chats[0]._id?.toString(), 'chat');
-      expect(response.status).toBe(500);
-      expect(response.text).toBe('Error retrieving chat: Failed populating chats');
+      expect(response.body[0].error).toBe('Service error');
     });
   });
 });

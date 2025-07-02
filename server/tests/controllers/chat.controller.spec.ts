@@ -3,10 +3,9 @@ import supertest from 'supertest';
 import { app } from '../../app';
 import * as chatService from '../../services/chat.service';
 import * as databaseUtil from '../../utils/database.util';
-import MessageModel from '../../models/messages.model';
-import ChatModel from '../../models/chat.model';
 import { Chat } from '../../types/chat';
 import { Message } from '../../types/message';
+import { addAnswerToQuestion } from '../../services/answer.service';
 
 /**
  * Spies on the service functions
@@ -89,6 +88,50 @@ describe('Chat Controller', () => {
       expect(populateDocumentSpy).toHaveBeenCalledWith(chatResponse._id?.toString(), 'chat');
     });
 
+    it('should return 400 for invalid request body - missing participants', async () => {
+      const invalidPayload = {
+        messages: [],
+      };
+
+      const response = await supertest(app).post('/chat/createChat').send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid chat request body');
+    });
+
+    it('should return 400 for empty participants array', async () => {
+      const invalidPayload = {
+        participants: [],
+        messages: [],
+      };
+
+      const response = await supertest(app).post('/chat/createChat').send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid chat request body');
+    });
+
+    it('should return 400 for participants with empty strings', async () => {
+      const invalidPayload = {
+        participants: ['user1', '', 'user2'],
+        messages: [],
+      };
+
+      const response = await supertest(app).post('/chat/createChat').send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid chat request body');
+    });
+
+    it('should return 500 if saveChat service returns error', async () => {
+      const validPayload = {
+        participants: ['user1', 'user2'],
+        messages: [],
+      };
+
+      saveChatSpy.mockResolvedValue({ error: 'Database error' });
+
+      const response = await supertest(app).post('/chat/createChat').send(validPayload);
+      expect(response.status).toBe(500);
+      expect(response.text).toContain('Error when creating chat');
+    });
   });
 
   describe('POST /chat/:chatId/addMessage', () => {
@@ -152,6 +195,81 @@ describe('Chat Controller', () => {
       expect(populateDocumentSpy).toHaveBeenCalledWith(chatResponse._id.toString(), 'chat');
     });
 
+    it('should return 400 for missing message text', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const invalidPayload = {
+        msgFrom: 'user1',
+        msgDateTime: new Date(),
+      };
+
+      const response = await supertest(app).post(`/chat/${chatId}/addMessage`).send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid message request body');
+    });
+
+    it('should return 400 for empty message text', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const invalidPayload = {
+        msg: '',
+        msgFrom: 'user1',
+        msgDateTime: new Date(),
+      };
+
+      const response = await supertest(app).post(`/chat/${chatId}/addMessage`).send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid message request body');
+    });
+
+    it('should return 400 for missing msgFrom', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const invalidPayload = {
+        msg: 'Hello!',
+        msgDateTime: new Date(),
+      };
+
+      const response = await supertest(app).post(`/chat/${chatId}/addMessage`).send(invalidPayload);
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Invalid message request body');
+    });
+
+    it('should return 500 if createMessage service returns error', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const validPayload = {
+        msg: 'Hello!',
+        msgFrom: 'user1',
+        msgDateTime: new Date(),
+      };
+
+      createMessageSpy.mockResolvedValue({ error: 'Failed to create message' });
+
+      const response = await supertest(app).post(`/chat/${chatId}/addMessage`).send(validPayload);
+      expect(response.status).toBe(500);
+      expect(response.text).toContain('Error when adding message to chat');
+    });
+
+    it('should return 500 if addMessageToChat service returns error', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const validPayload = {
+        msg: 'Hello!',
+        msgFrom: 'user1',
+        msgDateTime: new Date(),
+      };
+
+      const messageResponse = {
+        _id: new mongoose.Types.ObjectId(),
+        msg: 'Hello!',
+        msgFrom: 'user1',
+        msgDateTime: new Date(),
+        type: 'direct' as const,
+      };
+
+      createMessageSpy.mockResolvedValue(messageResponse);
+      addMessageSpy.mockResolvedValue({ error: 'Chat not found' });
+
+      const response = await supertest(app).post(`/chat/${chatId}/addMessage`).send(validPayload);
+      expect(response.status).toBe(500);
+      expect(response.text).toContain('Error when adding message to chat');
+    });
   });
 
   describe('GET /chat/:chatId', () => {
@@ -211,6 +329,16 @@ describe('Chat Controller', () => {
         updatedAt: mockFoundChat.updatedAt?.toISOString(),
       });
     });
+
+    it('should return 500 if getChat service returns error', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+
+      getChatSpy.mockResolvedValue({ error: 'Chat not found' });
+
+      const response = await supertest(app).get(`/chat/${chatId}`);
+      expect(response.status).toBe(500);
+      expect(response.text).toContain('Error when retrieving chat');
+    });
   });
 
   describe('POST /chat/:chatId/addParticipant', () => {
@@ -244,6 +372,35 @@ describe('Chat Controller', () => {
       expect(addParticipantSpy).toHaveBeenCalledWith(chatId, userId);
     });
 
+    it('should return 404 for missing userId', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const invalidPayload = {};
+
+      const response = await supertest(app)
+        .post(`/chat/${chatId}/addParticipant`)
+        .send(invalidPayload);
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 404 for empty userId', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const invalidPayload = { userId: '' };
+
+      const response = await supertest(app)
+        .post(`/chat/${chatId}/addParticipant`)
+        .send(invalidPayload);
+      expect(response.status).toBe(404);
+    });
+
+    it('should return 404 if addParticipantToChat service returns error', async () => {
+      const chatId = new mongoose.Types.ObjectId().toString();
+      const userId = new mongoose.Types.ObjectId().toString();
+
+      addParticipantSpy.mockResolvedValue({ error: 'User not found' });
+
+      const response = await supertest(app).post(`/chat/${chatId}/addParticipant`).send({ userId });
+      expect(response.status).toBe(404);
+    });
   });
 
   describe('POST /chat/getChatsByUser/:username', () => {
@@ -275,6 +432,29 @@ describe('Chat Controller', () => {
           updatedAt: chats[0].updatedAt?.toISOString(),
         },
       ]);
+    });
+
+    it('should return 500 for empty username', async () => {
+      const response = await supertest(app).get('/chat/getChatsByUser/');
+      expect(response.status).toBe(500);
+    });
+
+    it('should return 500 for whitespace-only username', async () => {
+      const response = await supertest(app).get('/chat/getChatsByUser/   ');
+      expect(response.status).toBe(500);
+      expect(response.text).toBe(
+        'Error when retrieving chat: Error: Error occurred when retrieving chat: Error: Chat not found',
+      );
+    });
+
+    it('should return 200 with empty array if no chats found', async () => {
+      const username = 'userWithNoChats';
+
+      getChatsByParticipantsSpy.mockResolvedValueOnce([]);
+
+      const response = await supertest(app).get(`/chat/getChatsByUser/${username}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
     });
 
     it('should return 500 if populateDocument fails for any chat', async () => {

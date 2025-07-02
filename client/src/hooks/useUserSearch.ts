@@ -11,6 +11,7 @@ import { ChangeEvent, useState } from 'react';
  * @returns handleInputChange - Function to update the input value and trigger the user filter.
  */
 const useUserSearch = (setUserFilter: (search: string) => void) => {
+  const [val, setVal] = useState('');
   // TODO: Task 1 - Define the state(s) required to manage the input value.
 
   /**
@@ -19,6 +20,8 @@ const useUserSearch = (setUserFilter: (search: string) => void) => {
    * @param e - the event object.
    */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setVal(e.target.value);
+    setUserFilter(e.target.value);
     // TODO: Task 1 - Handle the input change event and update the input value.
   };
 

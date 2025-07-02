@@ -8,5 +8,22 @@ import { Schema } from 'mongoose';
  * - Timestamps store `createdAt` & `updatedAt`.
  */
 // TODO: Task 3 - Define the schema for the Chat
-
+const chatSchema: Schema = new Schema(
+  {
+    participants: {
+      type: [String],
+      required: true,
+    },
+    messages: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Message',
+      },
+    ],
+  },
+  {
+    collection: 'Chat',
+    timestamps: true,
+  },
+);
 export default chatSchema;

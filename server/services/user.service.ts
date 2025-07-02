@@ -54,6 +54,12 @@ export const getUserByUsername = async (username: string): Promise<UserResponse>
  * @returns {Promise<UsersResponse>} - Resolves with the found user objects (without the passwords) or an error message.
  */
 export const getUsersList = async (): Promise<UsersResponse> => {
+  try {
+    const users = await UserModel.find({}, '-password').sort({ dateJoined: 1 });
+    return users;
+  } catch (error) {
+    return { error: `Error occurred when fetching users: ${error}` };
+  }
   // TODO: Task 1 - Implement the getUsersList function
 };
 
@@ -64,12 +70,15 @@ export const getUsersList = async (): Promise<UsersResponse> => {
  * @returns {Promise<UserResponse>} - Resolves with the authenticated user object (without the password) or an error message.
  */
 export const loginUser = async (loginCredentials: UserCredentials): Promise<UserResponse> => {
+  console.log('hs');
   const { username, password } = loginCredentials;
 
   try {
+    console.log('inside try');
     const user = await UserModel.findOne({ username, password }).select('-password');
 
     if (!user) {
+      console.log('suht faild');
       throw Error('Authentication failed');
     }
 

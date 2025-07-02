@@ -33,6 +33,7 @@ const useAuth = (authType: 'login' | 'signup') => {
    * Toggles the visibility of the password input field.
    */
   const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
     // TODO - Task 1: Toggle password visibility
   };
 
@@ -46,6 +47,10 @@ const useAuth = (authType: 'login' | 'signup') => {
     e: ChangeEvent<HTMLInputElement>,
     field: 'username' | 'password' | 'confirmPassword',
   ) => {
+    const { value } = e.target;
+    if (field === 'username') setUsername(value);
+    else if (field === 'password') setPassword(value);
+    else if (field === 'confirmPassword') setPasswordConfirmation(value);
     // TODO - Task 1: Handle input changes for the fields
   };
 
@@ -56,6 +61,23 @@ const useAuth = (authType: 'login' | 'signup') => {
    * @returns {boolean} True if inputs are valid, false otherwise.
    */
   const validateInputs = (): boolean => {
+    if (!username.trim() || !password) {
+      setErr('Username and password are required.');
+      return false;
+    }
+    if (authType === 'signup') {
+      if (!passwordConfirmation) {
+        setErr('Please confirm your password.');
+        return false;
+      }
+      if (password !== passwordConfirmation) {
+        setErr('Passwords do not match.');
+        return false;
+      }
+    }
+    setErr('');
+    console.log('Validation passed');
+    return true;
     // TODO - Task 1: Validate inputs for login and signup forms
     // Display any errors to the user
   };
@@ -68,20 +90,38 @@ const useAuth = (authType: 'login' | 'signup') => {
    */
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // TODO - Task 1: Validate inputs
-
-    let user: User;
+    if (!validateInputs()) {
+      console.log('Validation Failed');
+      return;
+    }
 
     try {
-      // TODO - Task 1: Handle the form submission, calling appropriate API routes
-      // based on the auth type
+      let user: User;
 
-      // Redirect to home page on successful login/signup
+      if (authType === 'signup') {
+        user = await createUser({ username, password });
+      } else {
+        user = await loginUser({ username, password });
+      }
+
+      console.log('navigate to home');
       setUser(user);
       navigate('/home');
-    } catch (error) {
-      // TODO - Task 1: Display error message
+    } catch (error: unknown) {
+      let errorMessage = 'An error occurred. Please try again.';
+
+      if (error && typeof error === 'object') {
+        if ('response' in error && error.response && typeof error.response === 'object') {
+          const response = error.response as { data?: { error?: string } };
+          if (response.data?.error) {
+            errorMessage = response.data.error;
+          }
+        } else if ('message' in error && typeof (error as Error).message === 'string') {
+          errorMessage = (error as Error).message;
+        }
+      }
+
+      setErr(errorMessage);
     }
   };
 

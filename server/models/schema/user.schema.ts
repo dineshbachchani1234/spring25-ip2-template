@@ -22,6 +22,11 @@ const userSchema: Schema = new Schema(
     dateJoined: {
       type: Date,
     },
+    biography: {
+      type: String,
+      default: '',
+      required: false,
+    },
     // TODO: Task 1 - Add a field for the user's biography
     // This is an optional field, which should have a default value of empty
   },

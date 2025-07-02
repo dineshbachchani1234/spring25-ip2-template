@@ -90,7 +90,35 @@ describe('getUsersList', () => {
     expect(retrievedUsers[0].dateJoined).toEqual(safeUser.dateJoined);
   });
 
-  // TODO: Task 1 - Add more tests for getUsersList
+  it('should return an empty array if there are no users', async () => {
+    mockingoose(UserModel).toReturn([], 'find');
+    const users = await getUsersList();
+    expect(Array.isArray(users)).toBe(true);
+    expect(users).toHaveLength(0);
+  });
+
+  it('should return an error if there is a database error while fetching users', async () => {
+    mockingoose(UserModel).toReturn(new Error('Database connection failed'), 'find');
+
+    const result = await getUsersList();
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('Error occurred when fetching users');
+    }
+  });
+
+  it('should not include password field in returned users', async () => {
+    const userWithPassword = { ...safeUser, password: 'secret123' };
+    mockingoose(UserModel).toReturn([userWithPassword], 'find');
+
+    const result = await getUsersList();
+    expect(Array.isArray(result)).toBe(true);
+    if (Array.isArray(result)) {
+      expect(result[0]).not.toHaveProperty('password');
+      expect(result[0]).toHaveProperty('username');
+      expect(result[0]).toHaveProperty('dateJoined');
+    }
+  });
 });
 
 describe('loginUser', () => {

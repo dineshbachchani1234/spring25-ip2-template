@@ -31,15 +31,12 @@ const chatController = (socket: FakeSOSocket) => {
    * @param req The incoming request containing chat data.
    * @returns `true` if the body contains valid chat fields; otherwise, `false`.
    */
-  const isCreateChatRequestValid = (req: CreateChatRequest): boolean => {
-    return (
-      req.body !== undefined &&
-      req.body.participants !== undefined &&
-      Array.isArray(req.body.participants) &&
-      req.body.participants.length > 0 &&
-      req.body.participants.every((p: any) => typeof p === 'string' && p.trim() !== '')
-    );
-  };
+  const isCreateChatRequestValid = (req: CreateChatRequest): boolean =>
+    req.body !== undefined &&
+    req.body.participants !== undefined &&
+    Array.isArray(req.body.participants) &&
+    req.body.participants.length > 0 &&
+    req.body.participants.every((p: unknown) => typeof p === 'string' && p.trim() !== '');
 
   // TODO: Task 3 - Implement the isCreateChatRequestValid function.
 
@@ -48,18 +45,15 @@ const chatController = (socket: FakeSOSocket) => {
    * @param req The incoming request containing message data.
    * @returns `true` if the body contains valid message fields; otherwise, `false`.
    */
-  const isAddMessageRequestValid = (req: AddMessageRequestToChat): boolean => {
-    return (
-      req.body !== undefined &&
-      req.body.msg !== undefined &&
-      typeof req.body.msg === 'string' &&
-      req.body.msg.trim() !== '' &&
-      req.body.msgFrom !== undefined &&
-      typeof req.body.msgFrom === 'string' &&
-      req.body.msgFrom.trim() !== '' &&
-      req.body.msgDateTime !== undefined
-    );
-  };
+  const isAddMessageRequestValid = (req: AddMessageRequestToChat): boolean =>
+    req.body !== undefined &&
+    req.body.msg !== undefined &&
+    typeof req.body.msg === 'string' &&
+    req.body.msg.trim() !== '' &&
+    req.body.msgFrom !== undefined &&
+    typeof req.body.msgFrom === 'string' &&
+    req.body.msgFrom.trim() !== '' &&
+    req.body.msgDateTime !== undefined;
   // TODO: Task 3 - Implement the isAddMessageRequestValid function.
 
   /**
@@ -67,14 +61,11 @@ const chatController = (socket: FakeSOSocket) => {
    * @param req The incoming request containing participant data.
    * @returns `true` if the body contains valid participant fields; otherwise, `false`.
    */
-  const isAddParticipantRequestValid = (req: AddParticipantRequest): boolean => {
-    return (
-      req.body !== undefined &&
-      req.body.userId !== undefined &&
-      typeof req.body.userId === 'string' &&
-      req.body.userId.trim() !== ''
-    );
-  };
+  const isAddParticipantRequestValid = (req: AddParticipantRequest): boolean =>
+    req.body !== undefined &&
+    req.body.userId !== undefined &&
+    typeof req.body.userId === 'string' &&
+    req.body.userId.trim() !== '';
   // TODO: Task 3 - Implement the isAddParticipantRequestValid function.
 
   /**

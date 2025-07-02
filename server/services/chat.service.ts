@@ -12,18 +12,20 @@ import { Message, MessageResponse } from '../types/message';
  */
 export const saveChat = async (chatPayload: CreateChatPayload): Promise<ChatResponse> => {
   try {
-    const messageIds: any[] = [];
+    const messageIds: string[] = [];
 
     if (chatPayload.messages && chatPayload.messages.length > 0) {
-      for (const messageData of chatPayload.messages) {
-        const messageResult = await createMessage(messageData);
-        if ('error' in messageResult) {
-          throw new Error(messageResult.error);
-        }
-        messageIds.push(messageResult._id);
-      }
+      const messageResults = await Promise.all(
+        chatPayload.messages.map(async messageData => {
+          const messageResult = await createMessage(messageData);
+          if ('error' in messageResult) {
+            throw new Error(messageResult.error);
+          }
+          return messageResult._id;
+        }),
+      );
+      messageIds.push(...messageResults.toString());
     }
-
     const chatData = {
       participants: chatPayload.participants,
       messages: messageIds,

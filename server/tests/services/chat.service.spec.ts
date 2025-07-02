@@ -244,13 +244,13 @@ describe('Chat service', () => {
         type: 'direct',
       };
 
-      jest.spyOn(MessageModel, 'create').mockResolvedValueOnce(null as any);
+      jest.spyOn(MessageModel, 'create').mockRejectedValueOnce(new Error('Creation failed'));
 
       const result = await createMessage(mockMessage);
 
       expect('error' in result).toBe(true);
       if ('error' in result) {
-        expect(result.error).toContain('Failed to create message');
+        expect(result.error).toContain('Creation failed');
       }
     });
 

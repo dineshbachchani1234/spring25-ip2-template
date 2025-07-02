@@ -90,7 +90,7 @@ const userController = (socket: FakeSOSocket) => {
       const user = await loginUser(loginCredentials);
 
       if ('error' in user) {
-        console.log('error in user' + user);
+        console.log(`error in user ${user}`);
         throw Error(user.error);
       }
 

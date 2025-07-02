@@ -447,9 +447,7 @@ describe('Chat Controller', () => {
     it('should return 500 for whitespace-only username', async () => {
       const response = await supertest(app).get('/chat/getChatsByUser/   ');
       expect(response.status).toBe(500);
-      expect(response.text).toBe(
-        'Error when retrieving chat: Error: Chat not found',
-      );
+      expect(response.text).toBe('Error when retrieving chat: Error: Chat not found');
     });
 
     it('should return 200 with empty array if no chats found', async () => {
